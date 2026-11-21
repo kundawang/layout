@@ -79,6 +79,17 @@ Methods on `*Node`, all nil-safe and copy-on-write (see the [Fluent API guide](f
 
 `AlignNodes(nodes, AlignEdge)` (`AlignLeft`, `AlignRight`, `AlignTop`, `AlignBottom`, `AlignCenterX`, `AlignCenterY`), `DistributeNodes(nodes, DistributeHorizontal|DistributeVertical)`, `SnapNodes(nodes, snapSize)`, `SnapToGrid(nodes, snapSize, originX, originY)`. They edit `Rect` after layout; intended for block and absolutely positioned boxes.
 
+## Hit testing
+
+`HitTest(root *Node, p Point) (*Node, Point)` returns the topmost visible node at a canvas point after layout and the point in that node's local coordinate space (relative to its border-box origin). The canvas origin is the running sum of `Rect` origins from the root down, except for `position: fixed`, whose `Rect` layout stores in viewport space. The winner is the deepest, last-painted box covering the point in document order (pre-order, children in slice order), so a descendant beats its ancestor and an overlapping later sibling beats an earlier one. Boxes are half-open (`[X, X+Width) × [Y, Y+Height)`), so a shared edge goes to the right/bottom box; zero-area boxes never hit; negative coordinates are ordinary coordinates; `display: none` skips the subtree. `nil` root, an unlaid-out tree, and points outside every box return `(nil, Point{})`. It is read-only, ignores `ZIndex` and `Transform`, and does not need a `LayoutContext`. Call it after `Layout` / `LayoutWithPositioning`.
+
+```go
+node, local := layout.HitTest(root, layout.Point{X: mouseX, Y: mouseY})
+if node != nil {
+	fmt.Printf("%p at (%.1f, %.1f)\n", node, local.X, local.Y)
+}
+```
+
 ## Transforms
 
 `IdentityTransform`, `Translate`, `Scale`, `Rotate` (radians), `RotateDegrees`, `SkewX`, `SkewY`, `Matrix`; methods `Multiply` (right operand applies first), `Apply`, `ApplyToRect`, `IsIdentity`, `ToSVGString` (empty string for the identity). `GetFinalRect(node)` returns the transformed bounding box.

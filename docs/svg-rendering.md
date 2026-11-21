@@ -121,3 +121,4 @@ func RenderToSVG(root *layout.Node, constraints layout.Constraints) string {
 2. `GetFinalRect` gives the bounding box after a transform; use it to size the canvas when transforms extend outside the layout.
 3. Padding and borders are inside `Rect`; draw the content box at `Rect` inset by the resolved padding/border if your design distinguishes them (`layout.ResolveLength(n.Style.Padding.Left, ctx, fontSize)`).
 4. `AlignNodes`, `DistributeNodes`, and `SnapNodes` adjust `Rect` after layout for design-tool operations on absolutely positioned or block boxes.
+5. `HitTest(root, Point)` maps a pointer position in canvas coordinates back to the node a renderer would draw last there (document order, descendants before their ancestors), with the point in that node's local space — the piece an editor needs to select the box under the cursor. Call it after layout; it never mutates `Rect`s.
